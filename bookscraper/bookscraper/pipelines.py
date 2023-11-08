@@ -13,29 +13,31 @@ class BookscraperPipeline:
 
         adapter = ItemAdapter(item)
 
-        # Strip all whitespaces from strings
+        ## Strip all whitespaces from strings
         field_names = adapter.field_names()
         for field_name in field_names:
             if field_name != 'description':
                 value = adapter.get(field_name)
-                if isinstance(value, str):
-                    adapter[field_name] = value.strip()
+                adapter[field_name] = value[0].strip()
 
-        # Category & product type -> switch to lowercase
+
+        ## Category & Product Type --> switch to lowercase
         lowercase_keys = ['category', 'product_type']
         for lowercase_key in lowercase_keys:
             value = adapter.get(lowercase_key)
-            if isinstance(value, str):
-                adapter[lowercase_key] = value.lower()
+            adapter[lowercase_key] = value.lower()
 
-        # Price -> convert to float
+
+
+        ## Price --> convert to float
         price_keys = ['price', 'price_excl_tax', 'price_incl_tax', 'tax']
         for price_key in price_keys:
             value = adapter.get(price_key)
             value = value.replace('£', '')
             adapter[price_key] = float(value)
 
-        # Availability -> extract number of books in stock
+
+        ## Availability --> extract number of books in stock
         availability_string = adapter.get('availability')
         split_string_array = availability_string.split('(')
         if len(split_string_array) < 2:
@@ -44,11 +46,14 @@ class BookscraperPipeline:
             availability_array = split_string_array[1].split(' ')
             adapter['availability'] = int(availability_array[0])
 
-        # Reviews -> convert string to number
+
+
+        ## Reviews --> convert string to number
         num_reviews_string = adapter.get('num_reviews')
         adapter['num_reviews'] = int(num_reviews_string)
 
-        # Stars -> convert text to number
+
+        ## Stars --> convert text to number
         stars_string = adapter.get('stars')
         split_stars_array = stars_string.split(' ')
         stars_text_value = split_stars_array[1].lower()
@@ -64,4 +69,6 @@ class BookscraperPipeline:
             adapter['stars'] = 4
         elif stars_text_value == "five":
             adapter['stars'] = 5
+
+
         return item
